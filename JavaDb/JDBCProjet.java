@@ -47,7 +47,7 @@ public class JDBCProjet {
 
     public static void main(String[] args) {
 
-
+  
         Connectdb databaseUtil = new Connectdb();
         String dbNameToCreate = "Objet";
 
@@ -62,7 +62,29 @@ public class JDBCProjet {
                     System.out.println("Entrée invalide. Veuillez saisir un nombre.");
                     afficherMenu();
                     scanner.next(); // Consommer l'entrée non valide
-                }
+
+                            SimulationCapteur capteurTemperature = new Capteur(1, "Température");
+                            SimulationCapteur actuateur = new Actuateur(2);
+                    
+                            SimulationCapteur simulation = new SimulationCapteur();
+                            
+                            // Simulation des données en temps réel
+                            for (int i = 0; i < 10; i++) { // Simuler 10 fois pour l'exemple
+                                simulation.genererDonnees(capteurTemperature);
+                                capteurTemperature.simulerDonnees();
+                                actuateur.simulerDonnees();
+                                
+                                try {
+                                    Thread.sleep(1000); // Attendre 1 seconde entre chaque génération
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                    
+                            // Affichage des données de la pile
+                            System.out.println("Données de la pile: " + simulation.getPileDonnees());
+                        }
+                    
                 choix = scanner.nextInt();
                 scanner.nextLine(); // Nettoyer le buffer d'entrée
                 gestionMenu(choix, scanner);
