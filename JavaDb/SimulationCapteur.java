@@ -1,4 +1,4 @@
-package JavaDb;
+/*package JavaDb;
 
 import java.util.Stack;
 
@@ -18,3 +18,4 @@ public class SimulationCapteur {
     }
 }
 
+*/

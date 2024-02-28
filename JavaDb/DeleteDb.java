@@ -2,7 +2,6 @@ package JavaDb;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
@@ -10,8 +9,8 @@ public class DeleteDb {
 
     private static void afficherMenuDesactivation() {
         System.out.println("\nMenu de désactivation :");
-        System.out.println("1. Désactiver un Microcontrolleur (et tous les Capteurs et Actuateurs associés)");
-        System.out.println("2. Désactiver un Capteur (et toutes les Mesures associées)");
+        System.out.println("1. Désactiver un Microcontrolleur");
+        System.out.println("2. Désactiver un Capteur ");
         System.out.println("3. Désactiver un Actuateur");
         System.out.println("4. Désactiver une Mesure");
         System.out.println("5. Retour");
@@ -37,22 +36,39 @@ public class DeleteDb {
     }
 
     private static void desactiverAssocies(Connection connexion, String nomTable, String nomColonneForeignKey, String valeurForeignKey, String nomColonneNom) throws SQLException {
-        String sqlUpdateAssocies;
+        // Pour chaque table associée, exécutez une mise à jour séparée.
         if ("Microcontrolleur".equals(nomTable)) {
-            sqlUpdateAssocies = "UPDATE Capteurs SET actif = FALSE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?);";
-            sqlUpdateAssocies += "UPDATE Actuateurs SET actif = FALSE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?);";
-        } else if ("Capteurs".equals(nomTable)) {
-            sqlUpdateAssocies = "UPDATE Mesures SET actif = FALSE WHERE capteur_id IN (SELECT capteur_id FROM Capteurs WHERE nom = ?);";
-        } else {
-            return; // Pas de désactivation en cascade pour Actuateurs ou Mesures
-        }
+            // Désactivation des Capteurs liés
+            String sqlUpdateCapteurs = "UPDATE Capteurs SET actif = FALSE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?)";
+            try (PreparedStatement updateCapteurs = connexion.prepareStatement(sqlUpdateCapteurs)) {
+                updateCapteurs.setString(1, valeurForeignKey);
+                updateCapteurs.executeUpdate();
+            }
 
-        try (PreparedStatement updateStatementAssocies = connexion.prepareStatement(sqlUpdateAssocies)) {
-            updateStatementAssocies.setString(1, valeurForeignKey);
-            updateStatementAssocies.executeUpdate(); // Exécutez chaque mise à jour si plusieurs
+            String sqlUpdateMesures = "UPDATE Mesures SET actif = FALSE WHERE capteur_id IN (SELECT Capteurs.capteur_id FROM Capteurs JOIN Microcontrolleur ON Capteurs.microcontrolleur_id = Microcontrolleur.microcontrolleur_id WHERE Microcontrolleur.nom = ?)";
+            try (PreparedStatement updateMesures = connexion.prepareStatement(sqlUpdateMesures)) {
+                updateMesures.setString(1, valeurForeignKey);
+                updateMesures.executeUpdate();
+            }
+            // Désactivation des Actuateurs liés
+            String sqlUpdateActuateurs = "UPDATE Actuateurs SET actif = FALSE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?)";
+            try (PreparedStatement updateActuateurs = connexion.prepareStatement(sqlUpdateActuateurs)) {
+                updateActuateurs.setString(1, valeurForeignKey);
+                updateActuateurs.executeUpdate();
+            }
+        } else if ("Capteurs".equals(nomTable)  ) {
+            
+            // Désactivation des Mesures liées
+            String sqlUpdateMesures = "UPDATE Mesures SET actif = FALSE WHERE capteur_id IN (SELECT capteur_id FROM Capteurs WHERE nom = ?)";
+
+            try (PreparedStatement updateMesures = connexion.prepareStatement(sqlUpdateMesures)) {
+                updateMesures.setString(1, valeurForeignKey);
+                updateMesures.executeUpdate();
+            }
         }
+        
     }
-
+    
     public static void main(String[] args) {
         Connection connection = Connectdb.getConnection(); // Assurez-vous que c'est le bon nom de la méthode de connexion
 

@@ -2,63 +2,76 @@ package JavaDb;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
 public class RestoreDb {
 
     private static void afficherMenuRestauration() {
+
         System.out.println("\nMenu de restauration :");
-        System.out.println("1. Restaurer un Microcontrolleur (et tous les Capteurs et Actuateurs associés)");
-        System.out.println("2. Restaurer un Capteur (et toutes les Mesures associées)");
+        System.out.println("1. Restaurer un Microcontrolleur ");
+        System.out.println("2. Restaurer un Capteur");
         System.out.println("3. Restaurer un Actuateur");
         System.out.println("4. Restaurer une Mesure");
         System.out.println("5. Retour");
         System.out.print("Choisissez une option : ");
+
     }
 
-    private static void restaurerElementParNom(Connection connexion, Scanner scanner, String nomTable, String nomColonneNom, String nomColonneId) throws SQLException {
+
+    private static void restaurerElementParNom (Connection connexion, Scanner scanner, String nomTable, String nomColonneNom, String nomColonneId) throws SQLException {
         System.out.print("\nEntrez le nom de l'élément à restaurer dans la table " + nomTable + " : ");
         String nomElement = scanner.nextLine();
 
-        // Mise à jour de la colonne 'actif' de 'false' à 'true' pour l'élément principal
-        
         String sqlUpdate = "UPDATE " + nomTable + " SET actif = TRUE WHERE " + nomColonneNom + " = ?";
         try (PreparedStatement updateStatement = connexion.prepareStatement(sqlUpdate)) {
             updateStatement.setString(1, nomElement);
             int lignesMiseAJour = updateStatement.executeUpdate();
 
             if (lignesMiseAJour > 0) {
-                System.out.println(nomTable + " restauré avec succès.");
-
-                // Logique de restauration en cascade pour Microcontrolleur
-                if ("Microcontrolleur".equals(nomTable)) {
-                    restaurerAssocies(connexion, "Capteurs", "microcontrolleur_id", nomElement, "nom");
-                    restaurerAssocies(connexion, "Actuateurs", "microcontrolleur_id", nomElement, "nom");
-                }
-
-                // Logique de restauration en cascade pour Capteurs
-                if ("Capteurs".equals(nomTable)) {
-                    restaurerAssocies(connexion, "Mesures", "capteur_id", nomElement, "nom");
-                }
+                System.out.println(nomTable + " activé avec succès.");
+                restaurerAssocies(connexion, nomTable, nomColonneId, nomElement, nomColonneNom);
             } else {
                 System.out.println("Aucun élément correspondant au nom fourni n'a été trouvé dans " + nomTable + ".");
             }
         }
     }
 
-    private static void restaurerAssocies(Connection connexion, String nomTable, String nomColonneForeignKey, String valeurForeignKey, String nomColonneNom) throws SQLException {
-        String sqlUpdateAssocies = "UPDATE " + nomTable + " SET actif = TRUE WHERE " + nomColonneForeignKey + " IN (SELECT " + nomColonneForeignKey + " FROM " + nomTable + " JOIN Microcontrolleur ON " + nomTable + "." + nomColonneForeignKey + " = Microcontrolleur.microcontrolleur_id WHERE Microcontrolleur." + nomColonneNom + " = ?)";
-        try (PreparedStatement updateStatementAssocies = connexion.prepareStatement(sqlUpdateAssocies)) {
-            updateStatementAssocies.setString(1, valeurForeignKey);
-            int lignesMiseAJour = updateStatementAssocies.executeUpdate();
-            if (lignesMiseAJour > 0) {
-                System.out.println(lignesMiseAJour + " éléments associés dans " + nomTable + " restaurés en cascade.");
+   private static void restaurerAssocies(Connection connexion, String nomTable, String nomColonneForeignKey, String valeurForeignKey, String nomColonneNom) throws SQLException {
+        // Pour chaque table associée, exécutez une mise à jour séparée.
+        if ("Microcontrolleur".equals(nomTable)) {
+            // Désactivation des Capteurs liés
+            String sqlUpdateCapteurs = "UPDATE Capteurs SET actif = TRUE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?)";
+            try (PreparedStatement updateCapteurs = connexion.prepareStatement(sqlUpdateCapteurs)) {
+                updateCapteurs.setString(1, valeurForeignKey);
+                updateCapteurs.executeUpdate();
+            }
+            
+            String sqlUpdateMesures = "UPDATE Mesures SET actif = TRUE WHERE capteur_id IN (SELECT Capteurs.capteur_id FROM Capteurs JOIN Microcontrolleur ON Capteurs.microcontrolleur_id = Microcontrolleur.microcontrolleur_id WHERE Microcontrolleur.nom = ?)";
+            try (PreparedStatement updateMesures = connexion.prepareStatement(sqlUpdateMesures)) {
+                updateMesures.setString(1, valeurForeignKey);
+                updateMesures.executeUpdate();
+            }
+
+            // Désactivation des Actuateurs liés
+            String sqlUpdateActuateurs = "UPDATE Actuateurs SET actif = TRUE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?)";
+            try (PreparedStatement updateActuateurs = connexion.prepareStatement(sqlUpdateActuateurs)) {
+                updateActuateurs.setString(1, valeurForeignKey);
+                updateActuateurs.executeUpdate();
+            }
+        } else if ("Capteurs".equals(nomTable)) {
+            // Désactivation des Mesures liées
+            String sqlUpdateMesures = "UPDATE Mesures SET actif = TRUE WHERE capteur_id IN (SELECT capteur_id FROM Capteurs WHERE nom = ?)";
+            try (PreparedStatement updateMesures = connexion.prepareStatement(sqlUpdateMesures)) {
+                updateMesures.setString(1, valeurForeignKey);
+                updateMesures.executeUpdate();
             }
         }
+        // Notez qu'il n'y a pas de cascade directe depuis Actuateurs ou Mesures dans cet exemple,
+        // ajustez selon votre logique métier et structure de données si nécessaire.
     }
-
+    
     public static void main(String[] args) {
         Connection connection = Connectdb.getConnection(); // Assurez-vous que c'est le bon nom de la méthode de connexion
 
