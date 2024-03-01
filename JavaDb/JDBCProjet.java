@@ -43,6 +43,7 @@ public class JDBCProjet {
         default:
             System.out.println("Choix invalide. Veuillez choisir à nouveau.");
         }
+        
     }
 
     public static void main(String[] args) {
@@ -63,8 +64,8 @@ public class JDBCProjet {
                 scanner.nextLine(); // Nettoyer le buffer d'entrée
                 gestionMenu(choix, scanner);
             } while (choix != 6);
-        } finally {
-            Connectdb.closeConnection(); // Assurez-vous que cette méthode ferme la connexion à la base de données
-        }
+        } //finally {
+            //Connectdb.closeConnection(); // Assurez-vous que cette méthode ferme la connexion à la base de données
+        //}
     }
 }

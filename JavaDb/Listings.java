@@ -86,5 +86,8 @@ public class Listings {
         } catch (SQLException e) {
             System.err.println("Erreur de connexion à la base de données : " + e.getMessage());
         }
+        Connectdb.closeConnection();
     }
+
+    
 }

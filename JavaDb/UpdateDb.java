@@ -64,6 +64,7 @@ private static void updateCapteurs(Connection connection) throws SQLException {
     String oldNomCapteur = scanner.nextLine();
     
     // Vérifier si plus d'un capteur existe avec ce nom
+    
     try (PreparedStatement checkExists = connection.prepareStatement("SELECT capteur_id, nom, type_capteur FROM Capteurs WHERE nom = ?")) {
         checkExists.setString(1, oldNomCapteur);
         ResultSet resultSet = checkExists.executeQuery();
@@ -89,6 +90,7 @@ private static void updateCapteurs(Connection connection) throws SQLException {
         }
         
         // Mise à jour des détails du capteur après avoir obtenu le capteur_id correct
+
         System.out.print("Entrez le nouveau type pour le capteur : ");
         String nouveauType = scanner.nextLine();
         System.out.print("Entrez le nouveau nom pour le capteur : ");
@@ -112,6 +114,7 @@ private static void updateActuateurs(Connection connection) throws SQLException 
     String oldNomActuateur = scanner.nextLine();
     
     // Vérifier si plus d'un actuateur existe avec ce nom
+
     try (PreparedStatement checkExists = connection.prepareStatement("SELECT actuateur_id, nom, fonction FROM Actuateurs WHERE nom = ?")) {
         checkExists.setString(1, oldNomActuateur);
         ResultSet resultSet = checkExists.executeQuery();
@@ -137,6 +140,7 @@ private static void updateActuateurs(Connection connection) throws SQLException 
         }
         
         // Mise à jour des détails de l'actuateur après avoir obtenu l'actuateur_id correct
+
         System.out.print("Entrez les nouvelles fonction pour l'actuateur : ");
         String nouvelleFonction = scanner.nextLine();
         System.out.print("Entrez le nouveau nom pour l'actuateur : ");
