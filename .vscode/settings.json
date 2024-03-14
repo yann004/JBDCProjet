@@ -1,6 +1,11 @@
 {
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "c:\\Users\\douga\\Downloads\\postgresql-42.7.1.jar"
+        "c:\\Users\\douga\\Downloads\\postgresql-42.7.1.jar",
+        "C:\\Users\\douga\\Documents\\PROG1357_CCNB_2023-2024\\JavaDb\\lib\\rs2xml.jar",
+        "c:\\Users\\douga\\Downloads\\com.fasterxml.jackson.core.jar\\com.fasterxml.jackson.core.jar",
+        "c:\\Users\\douga\\Downloads\\com.fasterxml.jackson.databind.jar\\com.fasterxml.jackson.databind.jar",
+        "c:\\Users\\douga\\Downloads\\com.fasterxml.jackson.annotations.jar\\com.fasterxml.jackson.annotations.jar",
+        "c:\\Users\\douga\\Downloads\\jar_files\\json-20240303.jar"
     ]
 }

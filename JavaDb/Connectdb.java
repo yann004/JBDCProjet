@@ -133,15 +133,16 @@ public class Connectdb {
 }
     public static  Connection getConnection() {
 
-        if (connection == null) {
+        //if (connection == null) {
             try {
                 connection = DriverManager.getConnection(url1, user, password);
             } catch (SQLException e) {
                 System.out.println("Erreur lors de la connexion à la base de données : " + e.getMessage());
             }
-        }
         return connection;
+
     }
+    //}
 
     // Méthode pour fermer la connexion à la base de données
 

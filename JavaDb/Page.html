@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion IoT</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { border-collapse: collapse; width: 50%; }
+        td, th { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        tr:nth-child(even) { background-color: #dddddd; }
+    </style>
+</head>
+<body>
+    <h2>Ajouter un Microcontrôleur</h2>
+    <form id="addForm">
+        Nom: <input type="text" id="addName"><br>
+        Détails: <input type="text" id="addDetails"><br>
+        <button type="button" id="addMicrocontrollerButton">Ajouter</button>
+    </form>
+
+    <h2>Mettre à jour un Microcontrôleur</h2>
+    ID: <input type="number" id="updateId"><br>
+    Nouveau nom: <input type="text" id="updateName"><br>
+    Nouveaux détails: <input type="text" id="updateDetails"><br>
+    <button type="button" id="updateMicrocontrollerButton">Mettre à jour</button>
+
+    <h2>Supprimer un Microcontrôleur</h2>
+    ID: <input type="number" id="deleteId"><br>
+    <button type="button" id="deleteMicrocontrollerButton">Supprimer</button>
+
+    <h2>Graphique des Mesures</h2>
+    <canvas id="mesureChart" width="400" height="400"></canvas>
+
+    <h2>Liste des Microcontrôleurs</h2>
+    <table id="microcontrollersTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Détails</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les microcontrôleurs seront ajoutés ici -->
+        </tbody>
+    </table>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Ajoutez ici les fonctions pour le CRUD des microcontrôleurs déjà existantes
+             // Ajoutez ce nouveau bloc de code
+    function loadMicrocontrollers() {
+
+$.ajax({
+    url: 'http://192.168.1.193:8080/api/microcontrollers',
+    type: 'GET',
+    contentType: 'application/json',
+   success: function(response) {
+// Essayez de parsez la réponse JSON si ce n'est pas déjà un objet
+var data = typeof response === 'string' ? JSON.parse(response) : response;
+// Maintenant, utilisez data qui doit être un tableau
+data.forEach(function(micro) {
+const row = `<tr>
+                <td>${micro.id}</td>
+                <td>${micro.nom}</td>
+                <td>${micro.details}</td>
+            </tr>`;
+$('#microcontrollersTable tbody').append(row);
+});
+},
+
+    error: function(xhr, status, error) {
+        alert('Une erreur s’est produite lors de la récupération des données: ' + error);
+    }
+});
+}
+
+// Appeler la fonction au chargement de la page
+loadMicrocontrollers();
+
+
+    $('#addMicrocontrollerButton').click(function() {
+        const name = $('#addName').val();
+        const details = $('#addDetails').val();
+        const data = { nom: name, details: details };
+
+        $.ajax({
+            url: 'http://192.168.1.193:8080/api/microcontrollers/add',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                alert('Microcontrôleur ajouté avec succès');
+            },
+            error: function(xhr, status, error) {
+                alert('Une erreur s’est produite: ' + error);
+            }
+        });
+    });
+
+    $('#updateMicrocontrollerButton').click(function() {
+        const id = $('#updateId').val();
+        const name = $('#updateName').val();
+        const details = $('#updateDetails').val();
+        const data = { id: id, nom: name, details: details };
+
+        $.ajax({
+            url: `/api/microcontrollers/update`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                alert('Microcontrôleur mis à jour avec succès');
+            },
+            error: function(xhr, status, error) {
+                alert('Une erreur s’est produite: ' + error);
+            }
+        });
+    });
+
+    $('#deleteMicrocontrollerButton').click(function() {
+        const id = $('#deleteId').val();
+
+        $.ajax({
+            url: `/api/microcontrollers/delete/${id}`,
+            type: 'DELETE',
+            success: function(response) {
+                alert('Microcontrôleur supprimé avec succès');
+            },
+            error: function(xhr, status, error) {
+                alert('Une erreur s’est produite: ' + error);
+            }
+        });
+    });
+
+            // Fonction pour dessiner le graphique des mesures
+            function fetchDataAndDrawChart() {
+                const labels = [];
+                const dataPoints = [];
+                const ctx = document.getElementById('mesureChart').getContext('2d');
+
+                $.ajax({
+                    url: 'http://192.168.1.193:8080/api/mesure', // Assurez-vous que cette URL est correcte et que le serveur fonctionne.
+                    type: 'GET',
+                    success: function(response) {
+                        // Assurez-vous que la réponse est un tableau JSON
+    var data = typeof response === 'string' ? JSON.parse(response) : response;
+    // Utilisez 'data' qui doit être un tableau
+    data.forEach(function(mesure) {
+        labels.push(mesure.timestamp);
+        dataPoints.push(mesure.valeur);
+    });
+
+                        new Chart(ctx, {
+                            type: 'line', // Vous pouvez changer le type de graphique si nécessaire.
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Valeur',
+                                    backgroundColor: 'rgb(75, 192, 192)',
+                                    borderColor: 'rgb(75, 192, 192)',
+                                    data: dataPoints,
+                                    fill: false,
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    y: { // Définition de l'échelle de l'axe des y
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Erreur lors de la récupération des données des mesures:", error);
+                    }
+                });
+            };
+
+            fetchDataAndDrawChart(); // Appeler la fonction pour dessiner le graphique dès que la page est chargée
+        });
+    </script>
+</body>
+</html>
+
+
+

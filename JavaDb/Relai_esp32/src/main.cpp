@@ -11,37 +11,8 @@ const int serverPort = 8080; // Remplacez par le port de votre serveur
 
 WiFiClient client;
 
-void setup() {
-  Serial.begin(115200);
-  pinMode(RELAY_PIN, OUTPUT);
-  
-  // Connexion au réseau WiFi
-
-  Serial.print("Connexion à ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connecté.");
-}
-
-void loop() {
-  // Activer le relais
-  digitalWrite(RELAY_PIN, HIGH); 
-  sendRelayStatus("ferme"); // Supposons que HIGH signifie "fermé"
-  delay(5000); // Attendre 5 secondes
-
-  // Désactiver le relais
-  digitalWrite(RELAY_PIN, LOW); 
-  sendRelayStatus("ouvert"); // Supposons que LOW signifie "ouvert"
-  delay(5000); // Attendre 5 secondes
-}
-
 void sendRelayStatus(const char* status) {
+
   if (client.connect(serverAddress, serverPort)) {
     Serial.println("Connexion au serveur réussie...");
 
@@ -70,3 +41,37 @@ void sendRelayStatus(const char* status) {
     Serial.println("Échec de la connexion.");
   }
 }
+
+void setup() {
+
+  Serial.begin(9600);
+  pinMode(RELAY_PIN, OUTPUT);
+  
+  // Connexion au réseau WiFi
+
+  Serial.print("Connexion à ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(50);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connecté.");
+}
+
+void loop() {
+
+  // Activer le relais
+  digitalWrite(RELAY_PIN, HIGH); 
+  sendRelayStatus("ouvert"); 
+  delay(2000); 
+
+  // Désactiver le relais
+  digitalWrite(RELAY_PIN, LOW); 
+  sendRelayStatus("ferme"); 
+  delay(2000); 
+}
+
+

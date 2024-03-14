@@ -39,7 +39,7 @@ public class RestoreDb {
     }
 
    private static void restaurerAssocies(Connection connexion, String nomTable, String nomColonneForeignKey, String valeurForeignKey, String nomColonneNom) throws SQLException {
-        // Pour chaque table associée, exécutez une mise à jour séparée.
+       
         if ("Microcontrolleur".equals(nomTable)) {
             // Désactivation des Capteurs liés
             String sqlUpdateCapteurs = "UPDATE Capteurs SET actif = TRUE WHERE microcontrolleur_id IN (SELECT microcontrolleur_id FROM Microcontrolleur WHERE nom = ?)";
@@ -68,8 +68,7 @@ public class RestoreDb {
                 updateMesures.executeUpdate();
             }
         }
-        // Notez qu'il n'y a pas de cascade directe depuis Actuateurs ou Mesures dans cet exemple,
-        // ajustez selon votre logique métier et structure de données si nécessaire.
+        
     }
     
     public static void main(String[] args) {

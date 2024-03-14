@@ -55,6 +55,7 @@ public class JDBCProjet {
         databaseUtil.createDatabaseIfNotExists(dbNameToCreate);
         databaseUtil.CreateTable(dbNameToCreate);
 
+
         try (Scanner scanner = new Scanner(System.in)) {
             int choix;
             do {

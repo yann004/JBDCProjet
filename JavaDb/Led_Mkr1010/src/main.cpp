@@ -12,35 +12,6 @@ const int serverPort = 8080; // Remplacez par le port de votre serveur
 
 WiFiClient client;
 
-void setup() {
-  Serial.begin(9600);
-  pinMode(LED_PIN, OUTPUT);
-  
-  // Connexion au réseau WiFi
-  Serial.print("Connexion à ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connecté.");
-}
-
-void loop() {
-  // Allumer la LED
-  digitalWrite(LED_PIN, HIGH);
-  sendLedStatus("ON");
-  delay(5000); // Attendre 5 secondes
-
-  // Éteindre la LED
-  digitalWrite(LED_PIN, LOW);
-  sendLedStatus("OFF");
-  delay(5000); // Attendre 5 secondes
-}
-
 void sendLedStatus(const char* status) {
   if (client.connect(serverAddress, serverPort)) {
     Serial.println("Connexion au serveur réussie...");
@@ -70,3 +41,38 @@ void sendLedStatus(const char* status) {
     Serial.println("Échec de la connexion.");
   }
 }
+
+void setup() {
+  
+  Serial.begin(9600);
+  pinMode(LED_PIN, OUTPUT);
+  
+  // Connexion au réseau WiFi
+
+  Serial.print("Connexion à ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connecté.");
+}
+
+void loop() {
+  // Allumer la LED
+
+  digitalWrite(LED_PIN, HIGH);
+  sendLedStatus("ouvert");
+  delay(3000); 
+
+  // Éteindre la LED
+
+  digitalWrite(LED_PIN, LOW);
+  sendLedStatus("ferme");
+  delay(3000); 
+}
+
+

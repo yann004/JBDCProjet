@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-
+/* 
 public class DataProcessor implements Runnable {
     
     private volatile boolean running = true;
@@ -37,7 +37,7 @@ public class DataProcessor implements Runnable {
 
     private void processSensorData(Map<String, String> data) {
 
-        String sensorName = data.get("sensorName");
+      /*   String sensorName = data.get("sensorName");
         String sensorValue = data.get("sensorValue");
         String sensorType = data.get("sensorType"); // 'capteur' ou 'actuateur'
         
@@ -78,8 +78,7 @@ public class DataProcessor implements Runnable {
 
     private void updateMesure(int capteurId, double value) throws SQLException {
 
-        
-        // Par exemple, si vous mettez à jour la dernière mesure enregistrée pour ce capteur:
+           
         String sql = "UPDATE Mesures SET valeur = ? WHERE capteur_id = ? ";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setDouble(1, value);
@@ -114,5 +113,121 @@ public class DataProcessor implements Runnable {
             stmt.setInt(2, actuateurId);
             stmt.executeUpdate();
         }
+      }
     }
-}
+}*/
+
+    
+    public class DataProcessor implements Runnable {
+
+        
+        private volatile boolean running = true;
+        //private Connection connection; // Assurez-vous d'initialiser cette connexion
+
+        Connection connection = Connectdb.getConnection();
+    
+        public DataProcessor(Connection connection) {
+            this.connection = connection;
+        }
+    
+        public void terminate() {
+            running = false;
+        }
+    
+        @Override
+      
+        public void run() {
+            while (running) {
+                Map<String, String> data = SensorDataQueue.removeFromQueue();
+                if (data != null) {
+                    System.out.println("Received data: " + data); // Affiche les données reçues
+                    processSensorData(data);
+                } else {
+                    try {
+                        Thread.sleep(1000); // Attente pour réduire l'utilisation du CPU lorsque la file d'attente est vide
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break; // Sort de la boucle si le thread est interrompu
+                    }
+                }
+            }
+        }
+        
+    
+        private void processSensorData(Map<String, String> data) {
+
+
+            try {
+                String type = data.get("sensorType"); // 'capteur' ou 'actuateur'
+                if ("capteur".equals(type)) {
+                    String sensorName = data.get("sensorName");
+                    double sensorValue = Double.parseDouble(data.get("sensorValue"));
+                    insertMesure(sensorName, sensorValue);
+                } else if ("actuateur".equals(type)) {
+                    String actuatorName = data.get("sensorName");
+                    String actuatorStatus = data.get("status");
+                    insertActuateurStatus(actuatorName, actuatorStatus);
+                }
+            } catch (SQLException e) {
+                System.out.println("SQL Exception: " + e.getMessage());
+            }
+        }
+    
+        private void insertMesure(String sensorName, double value) throws SQLException {
+            int sensorId = findSensorIdByName(sensorName);
+            if (sensorId != -1) {
+                String sql = "INSERT INTO Mesures (capteur_id, valeur, nom, actif) VALUES (?, ?, ?, TRUE)";
+                try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                    pstmt.setInt(1, sensorId);
+                    pstmt.setDouble(2, value);
+                    pstmt.setString(3, sensorName);  // Assurez-vous que 'nom' est un champ valide dans votre table Mesures
+                    int affectedRows = pstmt.executeUpdate();
+
+                    if (affectedRows > 0) {
+                        System.out.println("mesure ajouté avec succès.");
+                        }
+                }catch (SQLException e) {
+                    System.err.println("Erreur lors de l'ajout de l'actuateur: " + e.getMessage());
+                    }
+            }
+        }
+    
+        private int findSensorIdByName(String name) throws SQLException {
+            String sql = "SELECT capteur_id FROM Capteurs WHERE nom = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, name);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt("capteur_id");
+                    }
+                }
+            }
+            return -1;  // -1 signifie que le capteur n'a pas été trouvé
+        }
+    
+        private void insertActuateurStatus(String actuatorName, String status) throws SQLException {
+            int actuatorId = findActuatorIdByName(actuatorName);
+            if (actuatorId != -1) {
+                String sql = "INSERT INTO Actuateurs (nom, fonction, actif) VALUES (?, ?, TRUE)";
+                try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                    pstmt.setString(1, actuatorName);
+                    pstmt.setString(2, status);
+                    pstmt.executeUpdate();
+                }
+            }
+        }
+    
+        private int findActuatorIdByName(String name) throws SQLException {
+            String sql = "SELECT actuateur_id FROM Actuateurs WHERE nom = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, name);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt("actuateur_id");
+                    }
+                }
+            }
+            return -1;  // -1 signifie que l'actuateur n'a pas été trouvé
+        }
+    }
+    

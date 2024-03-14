@@ -26,6 +26,28 @@ public class AddDb {
         System.out.println("5. exit");
     }
 
+    public static void addMicrocontroller(Connection connexion, String nom, String details) throws SQLException {
+        if (nom.trim().isEmpty() || details.trim().isEmpty()) {
+            System.out.println("Le nom et les détails du microcontrolleur ne peuvent pas être vides. Veuillez réessayer.");
+            return;
+        }
+
+        if (!validerNom(nom) || !validerNom(details)) {
+            System.out.println("Le nom ou les détails du microcontrolleur ne correspondent pas au motif spécifié. Veuillez réessayer.");
+            return;
+        }
+
+        String sql = "INSERT INTO Microcontrolleur (nom, details) VALUES (?, ?)";
+
+        try (PreparedStatement preparedStatement = connexion.prepareStatement(sql)) {
+            preparedStatement.setString(1, nom);
+            preparedStatement.setString(2, details);
+            preparedStatement.executeUpdate();
+            System.out.println("Microcontrolleur ajouté avec succès.");
+        }
+    }
+    
+
     private static void ajouterMicrocontrolleur(Connection connexion, Scanner scanner) throws SQLException {
         System.out.print("Entrez le nom du microcontrolleur : ");
         String nom = scanner.nextLine();
@@ -161,6 +183,7 @@ public class AddDb {
                 }
             
                 // Récupérer l'ID du capteur à partir de son nom
+
                 String sqlFindCapteur = "SELECT capteur_id FROM Capteurs WHERE nom = ?";
                 int capteurId = -1;
                 try (PreparedStatement preparedStatement = connexion.prepareStatement(sqlFindCapteur)) {
@@ -176,6 +199,7 @@ public class AddDb {
                 }
             
                 String sql = "INSERT INTO Mesures (capteur_id, valeur, nom) VALUES (?, ?, ?)";
+                
                 try (PreparedStatement preparedStatement = connexion.prepareStatement(sql)) {
                     preparedStatement.setInt(1, capteurId);
                     preparedStatement.setFloat(2, valeur);
